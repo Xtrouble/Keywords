@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using KModkit;
 
 public class keywordsScript : MonoBehaviour
 {
-
-    public KMAudio Audio;
+	public KMAudio Audio;
     public KMBombInfo Bomb;
 
     static int moduleIdCounter = 1;
@@ -1373,4 +1373,61 @@ public class keywordsScript : MonoBehaviour
         }
         currentDigit += 1;
     }
+	
+	//twitch plays
+    #pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"Use the command !{0} type <text> to type the text in the keypad. Note: The text must be 8 characters long, and the letters must be capital";
+    #pragma warning restore 414
+	
+	IEnumerator ProcessTwitchCommand(string command)
+	{
+		string[] parameters = command.Split(' ');
+		if (Regex.IsMatch(parameters[0], @"^\s*type\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		{
+			yield return null;
+			if (parameters.Length != 2)
+			{
+				yield return "sendtochaterror The parameter length is invalid";
+				yield break;
+			}
+			
+			if (parameters[1].Length != 8)
+			{
+				yield return "sendtochaterror The text length being sent is invalid";
+				yield break;
+			}
+			
+			foreach (char c in parameters[1])
+			{
+				bool Interval = false;
+				for (int x = 0; x < buttonTexts.Count(); x++)
+				{
+					if (c.ToString() == buttonTexts[x].text)
+					{
+						Interval = true;
+						break;
+					}
+				}
+				
+				if (Interval == false)
+				{
+					yield return "sendtochaterror A character written in the text is not shown in the keypad";
+					yield break;
+				}
+			}
+			
+			foreach (char d in parameters[1])
+			{
+				for (int a = 0; a < buttonTexts.Count(); a++)
+				{
+					if (d.ToString() == buttonTexts[a].text)
+					{
+						buttons[a].OnInteract();
+						yield return new WaitForSecondsRealtime(0.2f);
+						break;
+					}
+				}
+			}
+		}
+	}
 }
