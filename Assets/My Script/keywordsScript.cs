@@ -18,6 +18,8 @@ public class keywordsScript : MonoBehaviour
     public KMSelectable[] buttons;
     public TextMesh[] buttonTexts;
 
+    public Material[] displayBackMats;
+    public MeshRenderer displayBack;
     public TextMesh displayTXT;
     public TextMesh answerAtxt;
     public TextMesh answerBtxt;
@@ -82,6 +84,8 @@ public class keywordsScript : MonoBehaviour
             KMSelectable pressedButton = button;
             button.OnInteract += delegate () { ButtonPress(pressedButton); return false; };
         }
+        displayBack.material = displayBackMats[0];
+        GetComponent<KMBombModule>().OnActivate += OnActivate;
     }
 
     void Start()
@@ -91,9 +95,14 @@ public class keywordsScript : MonoBehaviour
         wordKeyCompleter();
         changeText();
         getAnswers();
-        Debug.Log("[Keywords #" + moduleId + "] The key is " + completeKey + " and the words are " + completedWordA + " and " + completedWordB + ", meaning the answers are " + answerA + " and " + answerB + ".");
         getButtonValues();
         setButtonValues();
+        logMessages();
+    }
+
+    void OnActivate()
+    {
+        displayBack.material = displayBackMats[1];
     }
 
     void setButtonValues()
@@ -151,7 +160,6 @@ public class keywordsScript : MonoBehaviour
             addLetter();
             buttonValuePossibilities = buttonValuePossibilities.Distinct().ToList();
         }
-        Debug.Log("[Keywords #" + moduleId + "] The non-number buttons are the following: " + String.Join("", new List<string>(buttonValuePossibilities).ConvertAll(i => i.ToString()).ToArray()) + ".");
     }
 
     void addLetter()
@@ -1287,8 +1295,17 @@ public class keywordsScript : MonoBehaviour
         digitB1 = digitList[1];
         digitA2 = digitList[digitList.Count - 1];
         digitB2 = digitList[digitList.Count - 2];
-        loggedAnswers = "The numbers are " + digitA1.ToString() + digitB1.ToString() + " and " + digitA2.ToString() + digitB2.ToString() + ".";
-        Debug.Log("[Keywords #" + moduleId + "] " + loggedAnswers);
+        loggedAnswers = "Number A is " + digitA1.ToString() + digitB1.ToString() + " and number B is " + digitA2.ToString() + digitB2.ToString() + ".";
+    }
+
+    void logMessages()
+    {
+        Debug.LogFormat("[Keywords #{0}] The first 4 characters of the key on the display are {1}.", moduleId, completeKey.Substring(0, 4));
+        Debug.LogFormat("[Keywords #{0}] The last halves of the two words on the sticky note are {1} and {2}.", moduleId, completedWordA.Substring(4, 4), completedWordB.Substring(4, 4));
+        Debug.LogFormat("[Keywords #{0}] {1}", moduleId, loggedAnswers);
+        Debug.LogFormat("[Keywords #{0}] Using number A in the table in the manual the last 4 letters of the key are {1}, making the full key {2}.", moduleId, word1, completeKey);
+        Debug.LogFormat("[Keywords #{0}] Using number B in the table in the manual the first 4 letters of both sticky note words are {1}, making the full words {2} and {3}.", moduleId, word2, completedWordA, completedWordB);
+        Debug.LogFormat("[Keywords #{0}] After replacing the words' letters in common with the key with their associated numbers, the correct answers are {1} and {2}.", moduleId, answerA, answerB);
     }
 
     void ButtonPress(KMSelectable button)
@@ -1296,9 +1313,9 @@ public class keywordsScript : MonoBehaviour
         if (!moduleSolved)
         {
             button.AddInteractionPunch();
-            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
+            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, button.transform);
             button.AddInteractionPunch();
-            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
+            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, button.transform);
             button.AddInteractionPunch();
             displayTXTarray = displayTXT.text.ToCharArray();
             displayTXTarray[currentDigit] = button.GetComponentInChildren<TextMesh>().text.ToCharArray()[0];
@@ -1311,7 +1328,7 @@ public class keywordsScript : MonoBehaviour
                     GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.WireSequenceMechanism, transform);
                     currentDigit = 0;
                     displayTXT.text = displayKey;
-                    Debug.Log("[Keywords #" + moduleId + "] Correct! Both the user input and the top answer was " + answerA + ".");
+                    Debug.LogFormat("[Keywords #{0}] Correct! Both the user input and the top answer was {1}.", moduleId, answerA.ToUpper());
                     if (striketrhough1.activeSelf && striketrhough2.activeSelf)
                     {
                         displayTXT.text = "--------";
@@ -1330,7 +1347,7 @@ public class keywordsScript : MonoBehaviour
                     GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.WireSequenceMechanism, transform);
                     currentDigit = 0;
                     displayTXT.text = displayKey;
-                    Debug.Log("[Keywords #" + moduleId + "] Correct! Both the user input and the bottom answer was " + answerB + ".");
+                    Debug.LogFormat("[Keywords #{0}] Correct! Both the user input and the bottom answer was {1}.", moduleId, answerB.ToUpper());
                     if (striketrhough1.activeSelf && striketrhough2.activeSelf)
                     {
                         displayTXT.text = "--------";
@@ -1345,7 +1362,7 @@ public class keywordsScript : MonoBehaviour
                 }
                 if ((displayTXT.text.ToLower() != answerA) && (displayTXT.text.ToLower() != answerB))
                 {
-                    Debug.Log("[Keywords #" + moduleId + "] Wrong!!! The user input was " + displayTXT.text.ToLower() + " when the correct answers were " + answerA + " and " + answerB + ".");
+                    Debug.LogFormat("[Keywords #{0}] Wrong!!! The user input was {1} when the correct answers were {2} and {3}.", moduleId, displayTXT.text.ToLower(), answerA, answerB);
                     button.AddInteractionPunch(4f);
                     GetComponent<KMBombModule>().HandleStrike();
                     button.AddInteractionPunch(4f);
@@ -1368,7 +1385,7 @@ public class keywordsScript : MonoBehaviour
         else
         {
             button.AddInteractionPunch(0.25f);
-            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
+            GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, button.transform);
             button.AddInteractionPunch(0.25f);
         }
         currentDigit += 1;
@@ -1376,7 +1393,7 @@ public class keywordsScript : MonoBehaviour
 	
 	//twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use the command !{0} type <text> to type the text in the keypad. Note: The text must be 8 characters long, and the letters must be capital";
+    private readonly string TwitchHelpMessage = @"Use the command !{0} type <text> to type the text in the keypad. Note: The text must be 8 characters long";
     #pragma warning restore 414
 	
 	IEnumerator ProcessTwitchCommand(string command)
@@ -1402,7 +1419,7 @@ public class keywordsScript : MonoBehaviour
 				bool Interval = false;
 				for (int x = 0; x < buttonTexts.Count(); x++)
 				{
-					if (c.ToString() == buttonTexts[x].text)
+					if (c.ToString().ToUpper() == buttonTexts[x].text.ToUpper())
 					{
 						Interval = true;
 						break;
@@ -1420,14 +1437,128 @@ public class keywordsScript : MonoBehaviour
 			{
 				for (int a = 0; a < buttonTexts.Count(); a++)
 				{
-					if (d.ToString() == buttonTexts[a].text)
+					if (d.ToString().ToUpper() == buttonTexts[a].text.ToUpper())
 					{
 						buttons[a].OnInteract();
-						yield return new WaitForSecondsRealtime(0.2f);
+						yield return new WaitForSeconds(0.1f);
 						break;
 					}
 				}
 			}
 		}
 	}
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        if (displayKey != displayTXT.text)
+        {
+            string w1 = "o";
+            string w2 = "o";
+            for (int i = 0; i < currentDigit; i++)
+            {
+                if (answerA.ToUpper()[i] != displayTXT.text[i])
+                {
+                    w1 = "x";
+                }
+                if (answerB.ToUpper()[i] != displayTXT.text[i])
+                {
+                    w2 = "x";
+                }
+            }
+            if (w1 == "x" && w2 == "x")
+            {
+                currentDigit = 0;
+                displayTXT.text = displayKey;
+            }
+            else if (w1 == "o" && w2 == "x")
+            {
+                int start = currentDigit;
+                for (int s = start; s < answerA.Length; s++)
+                {
+                    for (int a = 0; a < buttonTexts.Count(); a++)
+                    {
+                        if (answerA[s].ToString().ToUpper() == buttonTexts[a].text.ToUpper())
+                        {
+                            buttons[a].OnInteract();
+                            yield return new WaitForSeconds(0.1f);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (w1 == "x" && w2 == "o")
+            {
+                int start = currentDigit;
+                for (int s = start; s < answerB.Length; s++)
+                {
+                    for (int a = 0; a < buttonTexts.Count(); a++)
+                    {
+                        if (answerB[s].ToString().ToUpper() == buttonTexts[a].text.ToUpper())
+                        {
+                            buttons[a].OnInteract();
+                            yield return new WaitForSeconds(0.1f);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (w1 == "o" && w2 == "o")
+            {
+                string choice = "";
+                if (UnityEngine.Random.Range(0, 2) == 0)
+                {
+                    choice = answerA.ToUpper();
+                }
+                else
+                {
+                    choice = answerB.ToUpper();
+                }
+                int start = currentDigit;
+                for (int s = start; s < choice.Length; s++)
+                {
+                    for (int a = 0; a < buttonTexts.Count(); a++)
+                    {
+                        if (choice[s].ToString().ToUpper() == buttonTexts[a].text.ToUpper())
+                        {
+                            buttons[a].OnInteract();
+                            yield return new WaitForSeconds(0.1f);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (!striketrhough1.activeSelf)
+        {
+            int start = currentDigit;
+            for (int s = start; s < answerA.Length; s++)
+            {
+                for (int a = 0; a < buttonTexts.Count(); a++)
+                {
+                    if (answerA[s].ToString().ToUpper() == buttonTexts[a].text.ToUpper())
+                    {
+                        buttons[a].OnInteract();
+                        yield return new WaitForSeconds(0.1f);
+                        break;
+                    }
+                }
+            }
+        }
+        if (!striketrhough2.activeSelf)
+        {
+            int start = currentDigit;
+            for (int s = start; s < answerB.Length; s++)
+            {
+                for (int a = 0; a < buttonTexts.Count(); a++)
+                {
+                    if (answerB[s].ToString().ToUpper() == buttonTexts[a].text.ToUpper())
+                    {
+                        buttons[a].OnInteract();
+                        yield return new WaitForSeconds(0.1f);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
