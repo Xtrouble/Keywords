@@ -531,7 +531,7 @@ public class keywordsScript : MonoBehaviour
         {
             if (digitB1 == 0)
             {
-                word1 = "gaho";
+                word1 = "faho";
             }
             else if (digitB1 == 1)
             {
@@ -1454,6 +1454,10 @@ public class keywordsScript : MonoBehaviour
         {
             string w1 = "o";
             string w2 = "o";
+            if (striketrhough1.activeSelf)
+                w1 = "x";
+            if (striketrhough2.activeSelf)
+                w2 = "x";
             for (int i = 0; i < currentDigit; i++)
             {
                 if (answerA.ToUpper()[i] != displayTXT.text[i])
@@ -1467,8 +1471,13 @@ public class keywordsScript : MonoBehaviour
             }
             if (w1 == "x" && w2 == "x")
             {
-                currentDigit = 0;
-                displayTXT.text = displayKey;
+                striketrhough1.SetActive(true);
+                striketrhough2.SetActive(true);
+                displayTXT.text = "--------";
+                moduleSolved = true;
+                GetComponent<KMBombModule>().HandlePass();
+                GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+                GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
             }
             else if (w1 == "o" && w2 == "x")
             {
