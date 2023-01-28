@@ -1005,7 +1005,7 @@ public class keywordsScript : MonoBehaviour
         {
             if (digitB2 == 0)
             {
-                word2 = "gaho";
+                word2 = "faho";
             }
             else if (digitB2 == 1)
             {
